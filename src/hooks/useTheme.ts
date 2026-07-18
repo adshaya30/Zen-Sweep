@@ -1,0 +1,2 @@
+// Theme hook placeholder.
+export {};
