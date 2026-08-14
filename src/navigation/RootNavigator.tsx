@@ -4,29 +4,60 @@ import {
 } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import { DetailsScreen } from '../screens/DetailsScreen';
-import { HomeScreen } from '../screens/HomeScreen';
+import {
+  ActiveBlockingScreen,
+  AppUsageTestScreen,
+} from '../features/appBlocking';
+import { OnboardingFlow } from '../features/onboarding/OnboardingFlow';
+import { BootScreen } from '../screens/BootScreen';
 import { colors } from '../theme/colors';
+import { MainTabs } from './MainNavigator';
 
 const RootStack = createNativeStackNavigator({
-  initialRouteName: 'Home',
+  initialRouteName: 'Boot',
   screenOptions: {
     contentStyle: {
-      backgroundColor: colors.slate[50],
+      backgroundColor: colors.zen.cream,
     },
-    headerTintColor: colors.brand[600],
+    headerShown: false,
   },
   screens: {
-    Home: {
-      screen: HomeScreen,
+    Boot: {
+      screen: BootScreen,
       options: {
-        title: 'Zen Sweep',
+        headerShown: false,
+        animation: 'fade',
       },
     },
-    Details: {
-      screen: DetailsScreen,
+    Onboarding: {
+      screen: OnboardingFlow,
       options: {
-        title: 'Setup Complete',
+        headerShown: false,
+        animation: 'fade',
+      },
+    },
+    Main: {
+      screen: MainTabs,
+      options: {
+        headerShown: false,
+      },
+    },
+    ActiveBlocking: {
+      screen: ActiveBlockingScreen,
+      options: {
+        headerShown: false,
+        gestureEnabled: false,
+        animation: 'fade',
+        contentStyle: {
+          backgroundColor: colors.zen.cream,
+        },
+      },
+    },
+    AppUsageTest: {
+      screen: AppUsageTestScreen,
+      options: {
+        headerShown: false,
+        presentation: 'modal',
       },
     },
   },

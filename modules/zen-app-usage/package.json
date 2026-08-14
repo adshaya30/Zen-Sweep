@@ -1,0 +1,16 @@
+{
+  "name": "zen-app-usage",
+  "version": "1.0.0",
+  "description": "Android UsageStatsManager bridge for Zen Sweep app detection",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {},
+  "keywords": ["expo", "android", "usagestats"],
+  "author": "Zen Sweep",
+  "license": "MIT",
+  "peerDependencies": {
+    "expo": "*",
+    "react": "*",
+    "react-native": "*"
+  }
+}

@@ -8,7 +8,7 @@ export default function App() {
   return (
     <>
       <RootNavigation />
-      <StatusBar style="auto" />
+      <StatusBar style="dark" />
     </>
   );
 }
