@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "Zen Sweep",
+    "slug": "frontend",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "scheme": "zensweep",
+    "plugins": [
+      "expo-dev-client",
+      "./modules/zen-app-usage/app.plugin.js",
+      "expo-font",
+      "expo-web-browser"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.zensweep.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#FDFBE4",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
