@@ -27,55 +27,90 @@ Mood-aware digital wellbeing for Android. When you reach for a trap app, Zen Swe
 | Android APIs | `UsageStatsManager` / `UsageEvents`, `SYSTEM_ALERT_WINDOW`, foreground service (`specialUse`) | `AppUsageHelper.kt`, `AppUsageMonitorService.kt`, `BlockingOverlay.kt`, `MoodOverlay.kt` |
 | Android library | **androidx.core:core-ktx 1.15.0** | `modules/zen-app-usage/android/build.gradle` |
 | Build | Gradle (Expo prebuild), Kotlin **2.1.20**, compile/target SDK **36**, min SDK **24** | Expo Android project |
-| Lint / format | **ESLint 9** (`eslint-config-expo`), **Prettier** + Tailwind class sorting | `package.json` |
-
-**Not in `package.json` and not implemented:** Firebase, Zustand (placeholder files only), Axios, TanStack Query, React Hook Form, Zod. Folders under `src/services/firebase/` and `src/store/` are empty stubs.
+| Lint / format | **ESLint 9** (`eslint-config-expo`), **Prettier** + Tailwind class sorting | `frontend/package.json` |
+| Backend & Cloud | **Firebase Cloud Functions (v2 / Node.js 20)**, **Firebase Auth**, **Cloud Firestore** | `backend/`, `frontend/src/services/firebase/` |
+| Web Browser & Auth | **expo-web-browser**, **expo-auth-session** | Google Sign-in OAuth flow |
 
 ---
 
-## 2. Deployment Details
+## 2. Deployment & Running the Project
 
-Not deployed at this stage — tested via a **local Expo development-client APK** (`npx expo run:android`) on a physical **Samsung Galaxy M32**, with Metro on port **8083** and `adb reverse`.
-
-The app **cannot** run in Expo Go: blocking and mood overlays require the local native module `zen-app-usage`.
+### Frontend (React Native / Expo)
+Tested via a **local Expo development-client APK** (`npx expo run:android`) on a physical device.
 
 ```bash
+# 1. Navigate to frontend
 cd frontend
+
+# 2. Install dependencies
 npm install
+
+# 3. Configure environment variables (create .env based on .env.example)
+cp .env.example .env
+
+# 4. Start Expo development server & launch Android app
 npx expo run:android
-# then connect the Dev Client to Metro, e.g. http://127.0.0.1:8083
 ```
 
-Android package: `com.zensweep.app`. No App Store / Play Store / EAS production build is configured in this repo.
+### Backend (Firebase Cloud Functions)
+```bash
+# 1. Navigate to backend functions
+cd backend/functions
+
+# 2. Install dependencies
+npm install
+
+# 3. Test locally with Firebase emulator
+npm run serve
+
+# 4. Deploy to Firebase
+cd ..
+firebase deploy --only functions
+```
 
 ---
 
 ## 3. Architecture / System Overview
 
-There is **no backend**. The phone is the full system: React Native UI, AsyncStorage, and a Kotlin Expo module that keeps watching the foreground app after Zen Sweep is backgrounded.
+Zen Sweep consists of three cohesive layers:
+1. **Frontend UI (React Native / Expo)**: Cross-platform user interface with smooth animations, onboarding, and auth flows.
+2. **Native Android Engine (`zen-app-usage`)**: Background foreground service, UsageStats monitor, and full-screen window overlays.
+3. **Serverless Backend (Firebase)**: Firebase Auth, Cloud Functions (v2), and Cloud Firestore for authentication and digital wellbeing data synchronization.
 
 ```mermaid
 flowchart TB
-  subgraph ui [React Native / Expo]
+  subgraph frontend [Frontend - React Native / Expo]
     Boot[BootScreen]
+    Auth[SignIn / SignUp / Google OAuth]
     Onboard[OnboardingFlow]
     Tabs[Main tabs: Overview / Insights / Blocks / Profile]
     Active[ActiveBlockingScreen]
-    Storage[(AsyncStorage)]
-    Boot --> Onboard
-    Boot --> Tabs
+    LocalStore[(AsyncStorage)]
+    
+    Boot --> Auth
+    Auth --> Onboard
+    Onboard --> Tabs
     Tabs --> Active
-    Onboard --> Storage
-    Tabs --> Storage
-    Active --> Storage
+    Tabs --> LocalStore
   end
 
-  subgraph native [zen-app-usage Kotlin]
+  subgraph backend [Backend - Firebase Cloud]
+    FirebaseAuth[Firebase Authentication]
+    Firestore[(Cloud Firestore)]
+    Functions[Cloud Functions v2]
+    
+    Auth <-->|Token & Profile Sync| FirebaseAuth
+    Tabs <-->|Sync State| Firestore
+    Functions <-->|Triggers & APIs| Firestore
+  end
+
+  subgraph native [Native Engine - zen-app-usage Kotlin]
     Module[ZenAppUsageModule]
     Svc[AppUsageMonitorService]
     Helper[AppUsageHelper / UsageStats]
     TimerUI[BlockingOverlay]
     MoodUI[MoodOverlay]
+    
     Module --> Svc
     Svc --> Helper
     Svc --> TimerUI
