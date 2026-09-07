@@ -19,7 +19,10 @@ export { auth };
 /**
  * Sign in existing user with email and password
  */
-export async function signInWithEmail(email: string, pass: string): Promise<User> {
+export async function signInWithEmail(
+  email: string,
+  pass: string,
+): Promise<User> {
   const cred = await signInWithEmailAndPassword(auth, email.trim(), pass);
   return cred.user;
 }
@@ -30,7 +33,7 @@ export async function signInWithEmail(email: string, pass: string): Promise<User
 export async function signUpWithEmail(
   email: string,
   pass: string,
-  fullName?: string
+  fullName?: string,
 ): Promise<User> {
   const cred = await createUserWithEmailAndPassword(auth, email.trim(), pass);
   if (fullName && fullName.trim()) {
@@ -66,7 +69,6 @@ export const loginUser = (email: string, pass: string) =>
 
 export const logoutUser = () => signOutUser();
 
-
 /**
  * Sign out current authenticated user
  */
@@ -84,7 +86,8 @@ export async function sendPasswordReset(email: string): Promise<void> {
 /**
  * Subscribe to auth state changes
  */
-export function onAuthChange(callback: (user: User | null) => void): Unsubscribe {
+export function onAuthChange(
+  callback: (user: User | null) => void,
+): Unsubscribe {
   return onAuthStateChanged(auth, callback);
 }
-

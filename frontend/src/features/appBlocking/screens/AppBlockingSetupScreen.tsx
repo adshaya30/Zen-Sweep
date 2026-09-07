@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -133,6 +134,32 @@ export function AppBlockingSetupScreen() {
     });
   }, []);
 
+  /**
+   * Android: opens the in-screen picker modal (curated list).
+   * iOS: presents the system Screen Time picker and merges the selected
+   * apps (base64 ApplicationTokens) into the current selection.
+   */
+  const handleAddApps = useCallback(async () => {
+    setError(null);
+    if (Platform.OS !== 'ios') {
+      setShowAppPicker(true);
+      return;
+    }
+    const picked = await AppUsageService.pickBlockedApps();
+    if (picked.length === 0) {
+      return;
+    }
+    const known = picked.filter(
+      (candidate) =>
+        !apps.some((app) => app.packageName === candidate.packageName),
+    );
+    setApps((current) => [...current, ...known]);
+    setSelectedPackageNames((current) => [
+      ...current,
+      ...known.map((app) => app.packageName),
+    ]);
+  }, [apps]);
+
   const handleMoodToggle = useCallback(
     async (app: AppInfo, enabled: boolean) => {
       setMoodEnabledByPackage((current) => ({
@@ -170,6 +197,13 @@ export function AppBlockingSetupScreen() {
 
   const handleStart = async () => {
     if (selectedApps.length === 0) {
+      if (Platform.OS === 'ios') {
+        setError(
+          'Use the Screen Time picker to choose apps to block on this iPhone.',
+        );
+        await handleAddApps();
+        return;
+      }
       setError('Please select at least one app.');
       setShowAppPicker(true);
       return;
@@ -257,7 +291,9 @@ export function AppBlockingSetupScreen() {
             apps={selectedApps}
             compact
             showAddButton
-            onAddPress={() => setShowAppPicker(true)}
+            onAddPress={() => {
+              void handleAddApps();
+            }}
           />
         </View>
 
@@ -266,11 +302,23 @@ export function AppBlockingSetupScreen() {
             Choose apps to block
           </Text>
           <Text className="mb-3 text-sm leading-5 text-zen-muted">
-            Turn Mood Intervention ON for an app, leave the timer off, then
-            open that app. A pause screen will appear. Timer block hides mood
-            until you stop it.
+            {Platform.OS === 'ios'
+              ? 'Use the Screen Time picker to choose the apps Zen Sweep should shield during focus sessions.'
+              : 'Turn Mood Intervention ON for an app, leave the timer off, then open that app. A pause screen will appear. Timer block hides mood until you stop it.'}
           </Text>
-          {apps.length === 0 ? (
+          {Platform.OS === 'ios' ? (
+            <Pressable
+              accessibilityRole="button"
+              className="items-center rounded-2xl border border-dashed border-zen-border bg-zen-cream/60 py-4"
+              onPress={() => {
+                void handleAddApps();
+              }}
+            >
+              <Text className="text-sm font-semibold text-zen-forest">
+                + Pick apps to block (Screen Time)
+              </Text>
+            </Pressable>
+          ) : apps.length === 0 ? (
             <Text className="text-sm text-zen-muted">Loading apps…</Text>
           ) : (
             apps.map((app) => (

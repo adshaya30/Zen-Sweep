@@ -8,10 +8,7 @@ import {
 } from 'react';
 
 import { saveUserPreferences } from './storage';
-import {
-  DEFAULT_PREFERENCES,
-  type UserPreferences,
-} from './types';
+import { DEFAULT_PREFERENCES, type UserPreferences } from './types';
 
 type Draft = Omit<UserPreferences, 'completedAt'>;
 
@@ -55,7 +52,9 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 export function useOnboardingDraft() {
   const ctx = useContext(OnboardingContext);
   if (!ctx) {
-    throw new Error('useOnboardingDraft must be used inside OnboardingProvider');
+    throw new Error(
+      'useOnboardingDraft must be used inside OnboardingProvider',
+    );
   }
   return ctx;
 }

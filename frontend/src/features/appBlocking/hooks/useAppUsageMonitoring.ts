@@ -30,7 +30,7 @@ export function useAppUsageMonitoring(
     null,
   );
   const [nativeAvailable, setNativeAvailable] = useState(
-    Platform.OS === 'android',
+    Platform.OS === 'android' || Platform.OS === 'ios',
   );
   const [error, setError] = useState<string | null>(null);
 

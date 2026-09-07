@@ -37,7 +37,7 @@ const steps = [
 export function HowItWorksSection({ style }: HowItWorksSectionProps) {
   return (
     <View
-      className="w-full rounded-[28px] bg-[#0E1317] p-5 border border-[#1E262E]"
+      className="w-full rounded-[28px] border border-[#1E262E] bg-[#0E1317] p-5"
       style={[
         {
           shadowColor: '#000',
@@ -52,7 +52,7 @@ export function HowItWorksSection({ style }: HowItWorksSectionProps) {
       {/* Tag */}
       <View className="mb-2.5 flex-row items-center">
         <View className="mr-2 h-[2px] w-3 bg-[#52B788]" />
-        <Text className="text-[11px] font-bold tracking-[1.5px] uppercase text-[#52B788]">
+        <Text className="text-[11px] font-bold uppercase tracking-[1.5px] text-[#52B788]">
           How It Works
         </Text>
       </View>
@@ -67,7 +67,7 @@ export function HowItWorksSection({ style }: HowItWorksSectionProps) {
         {steps.map((item) => (
           <View
             key={item.step}
-            className="rounded-2xl p-4.5 border"
+            className="p-4.5 rounded-2xl border"
             style={{
               backgroundColor: item.bg,
               borderColor: item.border,
@@ -75,7 +75,7 @@ export function HowItWorksSection({ style }: HowItWorksSectionProps) {
           >
             {/* Step Number */}
             <Text
-              className="text-[11px] font-semibold tracking-wider mb-1.5"
+              className="mb-1.5 text-[11px] font-semibold tracking-wider"
               style={{ color: item.accentColor }}
             >
               {item.step}

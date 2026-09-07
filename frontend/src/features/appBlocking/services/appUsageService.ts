@@ -1,12 +1,17 @@
 import { Alert, Platform } from 'react-native';
 import * as ZenAppUsage from 'zen-app-usage';
 
-import type { BlockingSession } from '../types/blocking';
-import type { AppUsageDetection } from '../types/blocking';
+import type {
+  BlockingSession,
+  AppUsageDetection,
+  AppInfo,
+} from '../types/blocking';
+
 import {
   endBlockingSession,
   getActiveBlockingSession,
 } from './blockingStorage';
+import { getInstalledApps } from './installedApps';
 import { syncMoodInterventionToNative } from '../../moodIntervention/sync';
 
 export type AppUsageService = {
@@ -23,6 +28,13 @@ export type AppUsageService = {
   stopMonitoring(): Promise<boolean>;
   isMonitoring(): Promise<boolean>;
   consumeOverlayStopRequest(): Promise<boolean>;
+  /**
+   * Select apps to block.
+   * - Android: returns the curated installed-app list (no native scan).
+   * - iOS: presents the system Screen Time (FamilyActivityPicker) sheet and
+   *   returns base64 ApplicationTokens as identifiers.
+   */
+  pickBlockedApps(): Promise<AppInfo[]>;
   evaluateForegroundAgainstSession(
     packageName: string,
     appName?: string | null,
@@ -35,41 +47,41 @@ export type AppUsageService = {
 
 function unsupported(): never {
   throw new Error(
-    'App blocking requires an Android development build (not Expo Go / web).',
+    'App blocking requires an Android or iOS development build (not Expo Go / web).',
   );
 }
 
 export const AppUsageService: AppUsageService = {
   async isUsageAccessGranted() {
-    if (Platform.OS !== 'android') {
+    if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
       return false;
     }
     return ZenAppUsage.isUsageAccessGranted();
   },
 
   async openUsageAccessSettings() {
-    if (Platform.OS !== 'android') {
+    if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
       unsupported();
     }
     await ZenAppUsage.openUsageAccessSettings();
   },
 
   async canDrawOverlays() {
-    if (Platform.OS !== 'android') {
+    if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
       return false;
     }
     return ZenAppUsage.canDrawOverlays();
   },
 
   async openOverlaySettings() {
-    if (Platform.OS !== 'android') {
+    if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
       unsupported();
     }
     await ZenAppUsage.openOverlaySettings();
   },
 
   async getCurrentForegroundApp() {
-    if (Platform.OS !== 'android') {
+    if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
       return null;
     }
     const info = await ZenAppUsage.getCurrentForegroundApp();
@@ -77,14 +89,14 @@ export const AppUsageService: AppUsageService = {
   },
 
   async getCurrentForegroundAppDetails() {
-    if (Platform.OS !== 'android') {
+    if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
       return null;
     }
     return ZenAppUsage.getCurrentForegroundApp();
   },
 
   async startMonitoring(session) {
-    if (Platform.OS !== 'android') {
+    if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
       return false;
     }
     return ZenAppUsage.startMonitoring({
@@ -95,24 +107,38 @@ export const AppUsageService: AppUsageService = {
   },
 
   async stopMonitoring() {
-    if (Platform.OS !== 'android') {
+    if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
       return false;
     }
     return ZenAppUsage.stopMonitoring();
   },
 
   async isMonitoring() {
-    if (Platform.OS !== 'android') {
+    if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
       return false;
     }
     return ZenAppUsage.isMonitoring();
   },
 
   async consumeOverlayStopRequest() {
-    if (Platform.OS !== 'android') {
+    if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
       return false;
     }
     return ZenAppUsage.consumeOverlayStopRequest();
+  },
+
+  async pickBlockedApps() {
+    if (Platform.OS === 'ios') {
+      const picked = await ZenAppUsage.presentAppSelectionPicker();
+      if (!picked?.length) {
+        return [];
+      }
+      return picked.map((app, index) => ({
+        packageName: app.identifier,
+        appName: app.name ?? `Selected App ${index + 1}`,
+      }));
+    }
+    return getInstalledApps();
   },
 
   async evaluateForegroundAgainstSession(packageName, appName) {
@@ -147,7 +173,7 @@ export const AppUsageService: AppUsageService = {
   },
 
   async ensureEnforcementPermissions() {
-    if (Platform.OS !== 'android') {
+    if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
       return { usageAccess: false, overlay: false };
     }
 
@@ -158,12 +184,21 @@ export const AppUsageService: AppUsageService = {
 };
 
 export async function promptEnforcementPermissions(): Promise<boolean> {
-  if (Platform.OS !== 'android') {
+  if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
     Alert.alert(
-      'Phone required',
-      'Blocking WhatsApp only works on a real Android phone with the Zen Sweep app installed. The laptop preview cannot stop other apps.',
+      'Device required',
+      'App blocking only works on a real mobile device (Android or iOS) with the Zen Sweep development build installed. The web preview cannot stop other apps.',
     );
     return false;
+  }
+
+  if (Platform.OS === 'ios') {
+    // Request FamilyControls authorization up front — if granted, the native
+    // module can immediately apply Screen-Time shields for the session.
+    const approved = await ZenAppUsage.requestAuthorization();
+    if (approved) {
+      return true;
+    }
   }
 
   const { usageAccess, overlay } =
@@ -171,8 +206,12 @@ export async function promptEnforcementPermissions(): Promise<boolean> {
 
   if (!usageAccess) {
     Alert.alert(
-      'Usage Access required',
-      'Zen Sweep needs Usage Access to know when you open WhatsApp or other apps.',
+      Platform.OS === 'ios'
+        ? 'Screen Time Permission required'
+        : 'Usage Access required',
+      Platform.OS === 'ios'
+        ? 'Zen Sweep needs Screen Time permission to shield blocked apps during focus sessions.'
+        : 'Zen Sweep needs Usage Access to know when you open WhatsApp or other apps.',
       [
         { text: 'Not now', style: 'cancel' },
         {
@@ -186,7 +225,7 @@ export async function promptEnforcementPermissions(): Promise<boolean> {
     return false;
   }
 
-  if (!overlay) {
+  if (!overlay && Platform.OS === 'android') {
     Alert.alert(
       'Display over other apps',
       'To cover WhatsApp when it opens, allow Zen Sweep to display over other apps.',
@@ -209,7 +248,7 @@ export async function promptEnforcementPermissions(): Promise<boolean> {
 export function onAppDetected(
   listener: (detection: AppUsageDetection) => void,
 ) {
-  if (Platform.OS !== 'android') {
+  if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
     return { remove: () => undefined };
   }
 
@@ -234,7 +273,7 @@ export function onAppDetected(
 export function onBlockedAppIntercepted(
   listener: (detection: AppUsageDetection) => void,
 ) {
-  if (Platform.OS !== 'android') {
+  if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
     return { remove: () => undefined };
   }
 
@@ -249,7 +288,7 @@ export function onBlockedAppIntercepted(
 }
 
 export function onMonitoringStoppedFromOverlay(listener: () => void) {
-  if (Platform.OS !== 'android') {
+  if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
     return { remove: () => undefined };
   }
 

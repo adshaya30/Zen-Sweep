@@ -1,11 +1,22 @@
+import { Platform } from 'react-native';
+
 import type { AppInfo } from '../types/blocking';
 
 /**
- * Mock installed-apps layer.
- * Later this can be swapped for a native Android package query
- * without changing UI consumers.
+ * Installed-apps layer.
+ *
+ * - Android: returns a curated list of well-known packages. There is no live
+ *   package-name scan (matches the existing behavior — the list drives the
+ *   Block setup screen).
+ * - iOS: returns an empty list — iOS exposes no API to enumerate installed
+ *   apps. Apps must be chosen through the system Screen Time picker
+ *   (`AppUsageService.pickBlockedApps()`), which returns base64
+ *   `ApplicationToken` identifiers instead of package names.
  */
 export async function getInstalledApps(): Promise<AppInfo[]> {
+  if (Platform.OS === 'ios') {
+    return [];
+  }
   return MOCK_INSTALLED_APPS;
 }
 

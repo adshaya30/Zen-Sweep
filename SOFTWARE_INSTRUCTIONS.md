@@ -40,7 +40,7 @@ Set `JAVA_HOME` to Android Studio’s JBR, for example:
 
 | Tool | Why |
 | --- | --- |
-| **Xcode** (macOS only) | `npm run ios` exists, but the native module `zen-app-usage` is **Android-only**. iOS will not block WhatsApp or show mood overlays. |
+| **Xcode** (macOS only) | `npm run ios` builds the iOS development client with the native Swift module `ZenAppUsage` using Apple's Screen Time APIs (`FamilyControls` / `ManagedSettings`). |
 | **Expo Go** | **Do not use.** Custom native code will not load. |
 
 ### 1.3 Phone setup
@@ -130,13 +130,12 @@ npx expo start --port 8081
 You can install the Dev Client the same way (`npx expo run:android` with an AVD running). **Usage Access and “Display over other apps” often do not work well in the emulator**, so timer/mood overlays may never appear. Use a real phone for judging the core feature.
 
 ### 4.3 iOS
-
 ```bash
 cd frontend
 npm run ios
 ```
 
-This only makes sense on macOS with Xcode. **App blocking and mood overlays will not work** (`modules/zen-app-usage/expo-module.config.json` platforms: `android` only).
+Builds and runs the custom iOS development client using the native Swift module `ZenAppUsageModule`. App shielding is handled through Apple's Screen Time APIs (`FamilyControls` & `ManagedSettings`). Note that running on a real iOS device requires an Apple Developer account with the Family Controls entitlement.
 
 ### 4.4 Web (not a valid demo)
 
@@ -229,7 +228,7 @@ If mood does not appear: stop any active timer first; wait ~45 seconds after a p
 | Native UI (overlay colors/layout) unchanged after edit | Run `npx expo run:android` again. |
 | `JAVA_HOME` / Gradle JDK errors | Point `JAVA_HOME` at Android Studio **jbr**, not an old Java 8. |
 | Samsung “put this app in deep sleep” | Settings → Battery → Zen Sweep → **Unrestricted**. |
-| Blocking does nothing on iOS or web | Expected. Core features are Android-only. |
+| Blocking does nothing on web | Expected. Web preview cannot access native app usage or shield apps. |
 | Empty app list / missing icons | The picker is a **mock list** in `src/features/appBlocking/services/installedApps.ts`. Apps not on that list cannot be selected. |
 | Need a clean profile | Uninstall **Zen Sweep** or clear app storage (AsyncStorage). Or Profile → Edit setup. |
 

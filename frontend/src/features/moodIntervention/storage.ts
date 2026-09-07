@@ -46,7 +46,9 @@ export async function setMoodEnabledForApp(
 
 export async function isMoodEnabled(packageName: string): Promise<boolean> {
   const config = await getMoodInterventionConfig();
-  return config.apps.some((app) => app.packageName === packageName && app.enabled);
+  return config.apps.some(
+    (app) => app.packageName === packageName && app.enabled,
+  );
 }
 
 export async function getEnabledMoodApps(): Promise<MoodInterventionApp[]> {
