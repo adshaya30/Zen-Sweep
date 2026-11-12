@@ -20,7 +20,9 @@ export function NameScreen({ onNext }: NameScreenProps) {
         What should we call you?
       </Text>
 
-      <Text className="mb-2 text-[13px] font-semibold text-zen-muted">Name</Text>
+      <Text className="mb-2 text-[13px] font-semibold text-zen-muted">
+        Name
+      </Text>
       <TextInput
         value={draft.name}
         onChangeText={(name) => update({ name })}

@@ -1,5 +1,6 @@
 const {
   withAndroidManifest,
+  withEntitlementsPlist,
   AndroidConfig,
   createRunOncePlugin,
 } = require('@expo/config-plugins');
@@ -10,6 +11,10 @@ const FOREGROUND_SERVICE_SPECIAL_USE =
   'android.permission.FOREGROUND_SERVICE_SPECIAL_USE';
 const POST_NOTIFICATIONS = 'android.permission.POST_NOTIFICATIONS';
 const SYSTEM_ALERT_WINDOW = 'android.permission.SYSTEM_ALERT_WINDOW';
+
+const FAMILY_CONTROLS = 'com.apple.developer.family-controls';
+const APP_GROUPS = 'com.apple.security.application-groups';
+const DEFAULT_IOS_APP_GROUP = 'group.com.zensweep.app';
 
 function ensurePermission(androidManifest, permission, toolsIgnore) {
   const items = androidManifest.manifest['uses-permission'] ?? [];
@@ -37,7 +42,7 @@ function ensurePermission(androidManifest, permission, toolsIgnore) {
 }
 
 const withZenAppUsage = (config) => {
-  return withAndroidManifest(config, (config) => {
+  config = withAndroidManifest(config, (config) => {
     const androidManifest = config.modResults;
     ensurePermission(
       androidManifest,
@@ -52,6 +57,22 @@ const withZenAppUsage = (config) => {
     AndroidConfig.Manifest.getMainApplicationOrThrow(androidManifest);
     return config;
   });
+
+  config = withEntitlementsPlist(config, (config) => {
+    const appGroup = config.ios?.appGroup ?? DEFAULT_IOS_APP_GROUP;
+
+    config.modResults[FAMILY_CONTROLS] = true;
+
+    const groups = config.modResults[APP_GROUPS] ?? [];
+    if (!groups.includes(appGroup)) {
+      groups.push(appGroup);
+    }
+    config.modResults[APP_GROUPS] = groups;
+
+    return config;
+  });
+
+  return config;
 };
 
 module.exports = createRunOncePlugin(

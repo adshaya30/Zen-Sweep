@@ -5,7 +5,10 @@ import { Pressable, ScrollView, Share, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppBrandIcon } from '../components/AppBrandIcon';
-import { getInsightsStats, type InsightsStats } from '../features/insights/storage';
+import {
+  getInsightsStats,
+  type InsightsStats,
+} from '../features/insights/storage';
 import { getUserPreferences } from '../features/onboarding/storage';
 import { TRAP_APP_OPTIONS } from '../features/onboarding/types';
 import type { UserPreferences } from '../features/onboarding/types';
@@ -105,7 +108,9 @@ export function InsightsScreen() {
             }}
           >
             <Text className="text-4xl leading-10 text-zen-forest">+</Text>
-            <Text className="mt-0.5 text-xs font-bold text-zen-forest">Add</Text>
+            <Text className="mt-0.5 text-xs font-bold text-zen-forest">
+              Add
+            </Text>
           </Pressable>
         </ScrollView>
 

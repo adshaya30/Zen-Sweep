@@ -37,7 +37,7 @@ export function InputField({
   const isSecure = isPassword ? !showPassword : secureTextEntry;
 
   return (
-    <View className="w-full mb-4" style={containerStyle}>
+    <View className="mb-4 w-full" style={containerStyle}>
       {/* Label and optional right action */}
       {(label || rightAction) && (
         <View className="mb-2 flex-row items-center justify-between">
@@ -45,7 +45,9 @@ export function InputField({
             <Text className="text-[14px] font-medium text-[#1B3B2B]">
               {label}
             </Text>
-          ) : <View />}
+          ) : (
+            <View />
+          )}
           {rightAction}
         </View>
       )}
@@ -87,9 +89,11 @@ export function InputField({
         {/* Password toggle icon button using Lucide */}
         {isPassword && (
           <Pressable
-            accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+            accessibilityLabel={
+              showPassword ? 'Hide password' : 'Show password'
+            }
             accessibilityRole="button"
-            className="p-2 -mr-1 rounded-full active:bg-[#E8ECE4]"
+            className="-mr-1 rounded-full p-2 active:bg-[#E8ECE4]"
             hitSlop={8}
             onPress={() => setShowPassword((prev) => !prev)}
           >

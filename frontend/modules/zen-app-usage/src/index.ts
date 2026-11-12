@@ -10,6 +10,16 @@ export type ForegroundAppEvent = {
   isBlocked?: boolean;
 };
 
+/**
+ * An app picked through the iOS Screen Time (FamilyActivityPicker) sheet.
+ * `identifier` is the base64-encoded Apple `ApplicationToken`. on Android the
+ * equivalent identifier is the package name (`com.instagram.android`).
+ */
+export type SelectedAppInfo = {
+  identifier: string;
+  name: string | null;
+};
+
 export type MonitoringConfig = {
   intervalMs?: number;
   blockedUntil?: number;
@@ -36,6 +46,10 @@ type NativeModule = {
     appNames: string[],
     cooldownMs: number,
   ): Promise<boolean>;
+  /** iOS only — requests FamilyControls / Screen Time authorization. */
+  requestAuthorization?(): Promise<boolean>;
+  /** iOS only — presents the system FamilyActivityPicker. */
+  presentAppSelectionPicker?(): Promise<SelectedAppInfo[] | null>;
   addListener(
     eventName:
       | 'onForegroundAppChanged'
@@ -47,11 +61,11 @@ type NativeModule = {
 };
 
 const LINKING_ERROR =
-  'ZenAppUsage native module is unavailable. Build a custom Android development client (Expo Go is not supported).';
+  'ZenAppUsage native module is unavailable. Build a custom Android or iOS development client (Expo Go is not supported).';
 
 function getNativeModule(): NativeModule {
-  if (Platform.OS !== 'android') {
-    throw new Error('ZenAppUsage is only available on Android.');
+  if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
+    throw new Error('ZenAppUsage is only available on Android and iOS.');
   }
 
   try {
@@ -62,7 +76,7 @@ function getNativeModule(): NativeModule {
 }
 
 function tryGetNativeModule(): NativeModule | null {
-  if (Platform.OS !== 'android') {
+  if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
     return null;
   }
   try {
@@ -94,6 +108,39 @@ export async function canDrawOverlays(): Promise<boolean> {
 
 export async function openOverlaySettings(): Promise<void> {
   await getNativeModule().openOverlaySettings();
+}
+
+/**
+ * iOS only — request FamilyControls / Screen Time authorization.
+ * No-op (always true) on Android so shared call-sites stay platform-neutral.
+ */
+export async function requestAuthorization(): Promise<boolean> {
+  if (Platform.OS !== 'ios') {
+    return true;
+  }
+  const native = tryGetNativeModule();
+  if (!native?.requestAuthorization) {
+    return false;
+  }
+  return native.requestAuthorization();
+}
+
+/**
+ * iOS only — present the system FamilyActivityPicker and return the selected
+ * apps as base64-encoded ApplicationTokens. Returns null on Android (and when
+ * the user cancels), so shared call-sites can fall back to platform lists.
+ */
+export async function presentAppSelectionPicker(): Promise<
+  SelectedAppInfo[] | null
+> {
+  if (Platform.OS !== 'ios') {
+    return null;
+  }
+  const native = tryGetNativeModule();
+  if (!native?.presentAppSelectionPicker) {
+    return null;
+  }
+  return native.presentAppSelectionPicker();
 }
 
 export async function getCurrentForegroundApp(): Promise<ForegroundAppInfo | null> {
@@ -179,9 +226,12 @@ export function addMonitoringStoppedFromOverlayListener(
 export function addMoodInterventionCompletedListener(
   listener: (event: { packageName: string }) => void,
 ): EventSubscription {
-  return getNativeModule().addListener('onMoodInterventionCompleted', (event) => {
-    listener({ packageName: event.packageName });
-  });
+  return getNativeModule().addListener(
+    'onMoodInterventionCompleted',
+    (event) => {
+      listener({ packageName: event.packageName });
+    },
+  );
 }
 
 export type { ForegroundAppInfo };

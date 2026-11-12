@@ -20,7 +20,11 @@ import * as Google from 'expo-auth-session/providers/google';
 import { ZenLogo } from '../../../components/ZenLogo';
 import { InputField } from '../../../components/forms/InputField';
 import { PasswordStrengthIndicator } from '../../../components/forms/PasswordStrengthIndicator';
-import { registerUser, loginUser, loginWithGoogle } from '../../../services/authService';
+import {
+  registerUser,
+  loginUser,
+  loginWithGoogle,
+} from '../../../services/authService';
 import { useAuth } from '../../../hooks/useAuth';
 
 WebBrowser.maybeCompleteAuthSession();
@@ -45,11 +49,9 @@ export function SignInScreen({
     process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ||
     '456000385900-web.apps.googleusercontent.com';
   const androidClientId =
-    process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ||
-    webClientId;
+    process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID || webClientId;
   const iosClientId =
-    process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ||
-    webClientId;
+    process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || webClientId;
 
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
     clientId: webClientId,
@@ -85,7 +87,10 @@ export function SignInScreen({
           })
           .catch((error) => {
             console.log('GOOGLE SIGN IN ERROR:', error?.code || error?.message);
-            Alert.alert('Google Sign-In Failed', error?.message || 'Authentication failed.');
+            Alert.alert(
+              'Google Sign-In Failed',
+              error?.message || 'Authentication failed.',
+            );
           })
           .finally(() => {
             setIsSubmitting(false);
@@ -121,29 +126,27 @@ export function SignInScreen({
         const user = await registerUser(trimmedEmail, password);
         console.log('REGISTER SUCCESS:', user.uid);
 
-        Alert.alert(
-          'Success',
-          'Account created successfully!',
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                if (onSuccess) {
-                  onSuccess();
-                } else {
-                  navigation.navigate('SetupName' as never);
-                }
-              },
+        Alert.alert('Success', 'Account created successfully!', [
+          {
+            text: 'OK',
+            onPress: () => {
+              if (onSuccess) {
+                onSuccess();
+              } else {
+                navigation.navigate('SetupName' as never);
+              }
             },
-          ]
-        );
+          },
+        ]);
       } catch (error: any) {
         console.log('REGISTER ERROR:', error?.code);
         let msg = error?.message || 'Something went wrong';
         if (error?.code === 'auth/configuration-not-found') {
-          msg = 'Email/Password sign-in is not enabled yet in your Firebase Console. Please go to Firebase Console > Authentication > Sign-in method and enable Email/Password.';
+          msg =
+            'Email/Password sign-in is not enabled yet in your Firebase Console. Please go to Firebase Console > Authentication > Sign-in method and enable Email/Password.';
         } else if (error?.code === 'auth/email-already-in-use') {
-          msg = 'An account with this email already exists. Please sign in instead.';
+          msg =
+            'An account with this email already exists. Please sign in instead.';
         } else if (error?.code === 'auth/invalid-email') {
           msg = 'Please enter a valid email address.';
         } else if (error?.code === 'auth/weak-password') {
@@ -175,10 +178,7 @@ export function SignInScreen({
     } catch (error: any) {
       console.log('LOGIN ERROR:', error?.code);
 
-      Alert.alert(
-        'Login Failed',
-        'Invalid email or password'
-      );
+      Alert.alert('Login Failed', 'Invalid email or password');
     } finally {
       setIsSubmitting(false);
     }
@@ -195,7 +195,8 @@ export function SignInScreen({
       await resetPassword(trimmedEmail);
       setSuccessMessage('Password reset link has been sent to your email.');
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Could not send reset email.';
+      const msg =
+        err instanceof Error ? err.message : 'Could not send reset email.';
       setErrorMessage(msg);
     }
   };
@@ -240,7 +241,10 @@ export function SignInScreen({
       await promptAsync();
     } catch (error: any) {
       console.log('PROMPT ASYNC ERROR:', error);
-      Alert.alert('Google Sign-In', error?.message || 'Could not start Google sign in.');
+      Alert.alert(
+        'Google Sign-In',
+        error?.message || 'Could not start Google sign in.',
+      );
     }
   };
 

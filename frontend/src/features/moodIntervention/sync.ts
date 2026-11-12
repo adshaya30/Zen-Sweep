@@ -15,7 +15,7 @@ import { DEFAULT_MOOD_COOLDOWN_MS } from './types';
  * Does not change timer-block packages / blockedUntil.
  */
 export async function syncMoodInterventionToNative(): Promise<boolean> {
-  if (Platform.OS !== 'android') {
+  if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
     return false;
   }
   try {

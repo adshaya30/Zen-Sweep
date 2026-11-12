@@ -18,12 +18,12 @@ googleProvider.setCustomParameters({ prompt: 'select_account' });
 export const registerUser = async (
   email: string,
   password: string,
-  fullName?: string
+  fullName?: string,
 ) => {
   const result = await createUserWithEmailAndPassword(
     auth,
     email.trim(),
-    password
+    password,
   );
 
   if (fullName && fullName.trim()) {
@@ -33,22 +33,15 @@ export const registerUser = async (
   return result.user;
 };
 
-export const loginUser = async (
-  email: string,
-  password: string
-) => {
-  const result = await signInWithEmailAndPassword(
-    auth,
-    email.trim(),
-    password
-  );
+export const loginUser = async (email: string, password: string) => {
+  const result = await signInWithEmailAndPassword(auth, email.trim(), password);
 
   return result.user;
 };
 
 export const loginWithGoogleCredential = async (
   idToken: string,
-  accessToken?: string
+  accessToken?: string,
 ): Promise<User> => {
   const credential = GoogleAuthProvider.credential(idToken, accessToken);
   const result = await signInWithCredential(auth, credential);
@@ -66,7 +59,7 @@ export const loginWithGoogle = async (idToken?: string): Promise<User> => {
   }
 
   throw new Error(
-    'Google Sign-In on mobile requires Google authentication token.'
+    'Google Sign-In on mobile requires Google authentication token.',
   );
 };
 

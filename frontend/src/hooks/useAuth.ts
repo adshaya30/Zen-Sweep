@@ -61,7 +61,8 @@ export function useAuth() {
     try {
       await sendPasswordReset(email);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Password reset failed';
+      const message =
+        err instanceof Error ? err.message : 'Password reset failed';
       setError(message);
       throw err;
     }

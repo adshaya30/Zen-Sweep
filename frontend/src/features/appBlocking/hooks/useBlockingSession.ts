@@ -6,7 +6,10 @@ import {
   restoreBlockingSession,
   saveBlockingSession,
 } from '../services/blockingStorage';
-import { AppUsageService, onMonitoringStoppedFromOverlay } from '../services/appUsageService';
+import {
+  AppUsageService,
+  onMonitoringStoppedFromOverlay,
+} from '../services/appUsageService';
 import type { AppInfo, BlockingSession } from '../types/blocking';
 
 function createSessionId(): string {
@@ -45,7 +48,7 @@ export function useBlockingSession() {
   const sessionRef = useRef<BlockingSession | null>(null);
 
   const refresh = useCallback(async () => {
-    if (Platform.OS === 'android') {
+    if (Platform.OS === 'android' || Platform.OS === 'ios') {
       const stoppedFromOverlay =
         await AppUsageService.consumeOverlayStopRequest();
       if (stoppedFromOverlay) {
@@ -71,7 +74,7 @@ export function useBlockingSession() {
     let mounted = true;
 
     (async () => {
-      if (Platform.OS === 'android') {
+      if (Platform.OS === 'android' || Platform.OS === 'ios') {
         const stoppedFromOverlay =
           await AppUsageService.consumeOverlayStopRequest();
         if (stoppedFromOverlay) {
